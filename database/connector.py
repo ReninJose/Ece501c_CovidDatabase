@@ -7,7 +7,9 @@ DDL_PATH = DB_DIR / "DDL.sql"
 
 
 def get_connection(db_path=DB_PATH):
-    return sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
 def get_cursor(db_path=DB_PATH):
