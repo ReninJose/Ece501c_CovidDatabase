@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS county_demographic(
     population_density      FLOAT,
     date                    DATETIME NOT NULL,
     PRIMARY KEY             (county_fips, state_fips, date),
-    FOREIGN KEY             (county_fips, state_fips) REFERENCES states(county_fips, state_fips)
+    FOREIGN KEY             (county_fips, state_fips) REFERENCES counties(county_fips, state_fips)
 );
 
 CREATE TABLE IF NOT EXISTS covid(
@@ -31,6 +31,6 @@ CREATE TABLE IF NOT EXISTS covid(
     cases                   INTEGER,
     deaths                  INTEGER,
     PRIMARY KEY             (county_fips, state_fips, date),
-    FOREIGN KEY             (county_fips, state_fips) REFERENCES states(county_fips, state_fips)
+    FOREIGN KEY             (county_fips, state_fips) REFERENCES counties(county_fips, state_fips)
 )
 
