@@ -46,10 +46,10 @@ import load
 
 load.build_state_relation()                 # 1. Fill the states table
 load.build_counties_relation("AZ", 4, 2020) # 2. Arizona counties, population as of April 2020
-load.load_covid19_data(2020)                # 3. NYT COVID-19 data for every county in 2020
+load.load_covid19_data(2020)                # 3. NYT COVID-19 data for the counties loaded in step 2, in 2020
 ```
 
-Run `build_state_relation()` first, because the other tables refer to states.
+Run `build_state_relation()` first, because the other tables refer to states. Then run `build_counties_relation()` before `load_covid19_data()`, because COVID-19 rows refer to counties.
 
 ### `build_state_relation()`
 
@@ -79,7 +79,15 @@ Downloads the NYT county file for one year and loads it into `covid`.
 |---|---|---|
 | `year` | `int` | `2020`, `2021`, `2022`, `2023` |
 
-Rows without a FIPS code (for example "Unknown" counties and New York City) are skipped. Each file has hundreds of thousands of rows, so this takes a while.
+Only counties already in the `counties` table are loaded. If no counties are stored, it prints a message and does nothing.
+
+These rows are skipped:
+- Rows without a FIPS code (for example "Unknown" counties and New York City).
+- Rows for counties that are not in `counties`. This covers states you have not loaded and territories that are not in `STATE_FIPS` (Virgin Islands, Guam, Northern Mariana Islands). The number skipped is printed, followed by the FIPS code and name of each skipped county.
+
+Connecticut's county FIPS codes in the Census data may not match the ones the NYT uses, so Connecticut rows may be skipped.
+
+Each file has hundreds of thousands of rows, so this takes a while.
 
 ### Duplicate rows
 

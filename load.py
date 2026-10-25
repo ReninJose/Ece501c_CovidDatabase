@@ -72,16 +72,30 @@ def load_covid19_data(year):
     if year not in [2020, 2021, 2022, 2023]:
         raise ValueError("year must be 2020, 2021, 2022, or 2023")
 
+    # covid rows must reference a stored county (FK), so keep only counties
+    # already loaded with build_counties_relation()
+    stored_counties = set(CURSOR.execute("SELECT county_fips, state_fips FROM counties").fetchall())
+    if not stored_counties:
+        print("No counties stored yet, run build_counties_relation() first")
+        return None
+
     url = f"https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-{year}.csv"
     covid_data = extract_covid(url)
 
     processed_data = []
+    skipped = 0     # rows for counties not in the counties table
+    missing_counties = {}   # FIPS -> "County, State" for each skipped county (one entry, not one per date)
     for data in covid_data:
         try:
             state_fips, county_fips = data["fips"][:2], data["fips"][2:]
         except Exception as e:
             continue
-        
+
+        if (county_fips, state_fips) not in stored_counties:
+            skipped += 1
+            missing_counties[data["fips"]] = f"{data['county']}, {data['state']}"
+            continue
+
         processed_data.append({
             "county_fips": county_fips,
             "state_fips": state_fips,
@@ -89,6 +103,9 @@ def load_covid19_data(year):
             "cases": data["infected_cases"],
             "deaths": data["deaths"]
         })
+    print(f"Skipped {skipped} row(s) for {len(missing_counties)} counties not in the counties table")
+    for fips, name in sorted(missing_counties.items()):
+        print(f"  {fips} {name}")
 
     query = "INSERT INTO covid (county_fips, state_fips, date, cases, deaths) VALUES (:county_fips, :state_fips, :date, :cases, :deaths)"
     insert_many(query, processed_data)

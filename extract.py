@@ -5,7 +5,7 @@ import io
 from datetime import datetime as dt
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)  # .env wins over a stale CENSUS_API_KEY already in the shell
 
 POPULATION_URL = "https://api.census.gov/data/2023/pep/charv"
 GEO_URL = "https://api.census.gov/data/2025/geoinfo"
